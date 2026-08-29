@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RV Armazém</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    width: 100%;
+    max-width: 420px;
+    padding: 30px;
+  }
+  h1 { text-align: center; color: #203a43; font-size: 22px; margin-bottom: 5px; }
+  p.subtitle { text-align: center; color: #777; margin-bottom: 25px; font-size: 14px; }
+  label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
+  input {
+    width: 100%; padding: 12px; margin-bottom: 18px;
+    border: 1px solid #ccc; border-radius: 8px; font-size: 15px;
+  }
+  button {
+    width: 100%; padding: 12px; background: #203a43; color: #fff;
+    border: none; border-radius: 8px; font-size: 16px; cursor: pointer;
+  }
+  button:hover { background: #2c5364; }
+  .error { color: #c0392b; font-size: 13px; text-align: center; margin-bottom: 10px; display: none; }
+  .hidden { display: none; }
+  .loading { text-align: center; color: #666; font-size: 14px; }
+  .dashboard-header { background: #203a43; color: #fff; padding: 20px; border-radius: 12px 12px 0 0; margin: -30px -30px 20px -30px; }
+  .dashboard-header h2 { margin: 0 0 5px 0; font-size: 18px; }
+  .dashboard-header span { font-size: 13px; opacity: 0.85; }
+  .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+  .info-row.total { font-weight: 700; font-size: 16px; color: #1a7a3c; border-top: 2px solid #203a43; margin-top: 10px; padding-top: 12px; }
+  .logout-btn { background: #c0392b; margin-top: 20px; }
+  .logout-btn:hover { background: #922b21; }
+  .badge { display: inline-block; background: #eaf3ff; color: #1a5276; padding: 3px 10px; border-radius: 20px; font-size: 12px; margin-top: 5px; }
+</style>
+</head>
+<body>
+
+<div class="card" id="loadingCard">
+  <p class="loading">Carregando dados da planilha...</p>
+</div>
+
+<div class="card hidden" id="loginCard">
+  <h1>RV Armazém</h1>
+  <p class="subtitle">Acesse com seu CPF (login e senha)</p>
+  <div class="error" id="errorMsg"></div>
+  <label for="cpfInput">CPF (somente números)</label>
+  <input type="text" id="cpfInput" placeholder="Ex: 12345678900" maxlength="14">
+  <label for="senhaInput">Senha</label>
+  <input type="password" id="senhaInput" placeholder="Digite seu CPF novamente">
+  <button onclick="login()">Entrar</button>
+</div>
+
+<div class="card hidden" id="dashCard">
+  <div class="dashboard-header">
+    <h2 id="colabNome"></h2>
+    <span id="colabFuncao"></span><br>
+    <span class="badge" id="colabTurno"></span>
+  </div>
+  <div id="detalhesRV"></div>
+  <button class="logout-btn" onclick="logout()">Sair</button>
+</div>
+
+<script>
+// ===================== CONFIGURAÇÃO =====================
+// Substitua pelos links publicados da sua planilha (Passo 1)
+const URL_AUX = "COLE_AQUI_O_LINK_CSV_DA_ABA_AUX";
+const URL_OPERADOR = "COLE_AQUI_O_LINK_CSV_DA_ABA_OPERADOR";
+
+let base = [];
+
+// ===================== FUNÇÕES DE PARSE =====================
+function parseCSV(texto) {
+  const linhas = texto.trim().split('\n').map(l => l.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
+  return linhas;
+}
+
+function paraNumero(valor) {
+  if (!valor) return 0;
+  let v = valor.replace(/R\$\s?/g, '').replace(/\./g, '').replace(',', '.').replace(/[^\d.\-]/g, '');
+  const n = parseFloat(v);
+  return isNaN(n) ? 0 : n;
+}
+
+function limparCpf(cpf) {
+  return (cpf || '').replace(/\D/g, '');
+}
+
+function formatarMoeda(valor) {
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// ===================== CARREGAR DADOS =====================
+async function carregarDados() {
+  try {
+    const [respAux, respOp] = await Promise.all([
+      fetch(URL_AUX),
+      fetch(URL_OPERADOR)
+    ]);
+    const textoAux = await respAux.text();
+    const textoOp = await respOp.text();
+
+    const linhasAux = parseCSV(textoAux);
+    const linhasOp = parseCSV(textoOp);
+
+    const cabecalhoAux = linhasAux[0];
+    const cabecalhoOp = linhasOp[0];
+
+    const auxiliares = linhasAux.slice(1).filter(l => l[0] && l[1]).map(linha => montarColaborador(linha, cabecalhoAux, "Auxiliar de Movimentação"));
+    const operadores = linhasOp.slice(1).filter(l => l[0] && l[1]).map(linha => montarColaborador(linha, cabecalhoOp, "Operador de Empilhadeira"));
+
+    base = [...auxiliares, ...operadores];
+
+    document.getElementById('loadingCard').classList.add('hidden');
+    document.getElementById('loginCard').classList.remove('hidden');
+  } catch (erro) {
+    document.getElementById('loadingCard').innerHTML =
+      '<p class="loading" style="color:#c0392b;">Erro ao carregar dados. Verifique a conexão ou os links da planilha.</p>';
+    console.error(erro);
+  }
+}
+
+function montarColaborador(linha, cabecalho, funcao) {
+  const nome = linha[0];
+  const cpf = limparCpf(linha[1]);
+  const turno = linha[3];
+  const itens = {};
+
+  // Colunas de índice 4 até a penúltima são os valores intermediários
+  for (let i = 4; i < cabecalho.length - 1; i++) {
+    const chave = cabecalho[i];
+    if (!chave) continue;
+    const valor = paraNumero(linha[i]);
+    if (valor !== 0) itens[chave] = valor;
+  }
+
+  // Última coluna = total a pagar
+  const total = paraNumero(linha[linha.length - 1]);
+
+  return { nome, cpf, turno, funcao, itens, total };
+}
+
+// ===================== LOGIN =====================
+function login() {
+  const cpfDigitado = limparCpf(document.getElementById('cpfInput').value);
+  const senhaDigitada = limparCpf(document.getElementById('senhaInput').value);
+  const errorMsg = document.getElementById('errorMsg');
+
+  if (cpfDigitado !== senhaDigitada) {
+    errorMsg.textContent = "A senha deve ser igual ao CPF.";
+    errorMsg.style.display = 'block';
+    return;
+  }
+
+  const colaborador = base.find(c => c.cpf === cpfDigitado);
+
+  if (!colaborador) {
+    errorMsg.textContent = "CPF não encontrado. Verifique os números digitados.";
+    errorMsg.style.display = 'block';
+    return;
+  }
+
+  errorMsg.style.display = 'none';
+  mostrarDashboard(colaborador);
+}
+
+function mostrarDashboard(colaborador) {
+  document.getElementById('loginCard').classList.add('hidden');
+  document.getElementById('dashCard').classList.remove('hidden');
+
+  document.getElementById('colabNome').textContent = colaborador.nome;
+  document.getElementById('colabFuncao').textContent = colaborador.funcao;
+  document.getElementById('colabTurno').textContent = "Turno " + colaborador.turno;
+
+  let html = '';
+  for (const [chave, valor] of Object.entries(colaborador.itens)) {
+    html += `<div class="info-row"><span>${chave}</span><span>${formatarMoeda(valor)}</span></div>`;
+  }
+  html += `<div class="info-row total"><span>Total a Pagar (RV)</span><span>${formatarMoeda(colaborador.total)}</span></div>`;
+
+  document.getElementById('detalhesRV').innerHTML = html;
+}
+
+function logout() {
+  document.getElementById('dashCard').classList.add('hidden');
+  document.getElementById('loginCard').classList.remove('hidden');
+  document.getElementById('cpfInput').value = '';
+  document.getElementById('senhaInput').value = '';
+}
+
+document.addEventListener('DOMContentLoaded', carregarDados);
+document.getElementById('senhaInput')?.addEventListener('keyup', e => { if (e.key === 'Enter') login(); });
+</script>
+
+</body>
+</html>
