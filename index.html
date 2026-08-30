@@ -24,46 +24,113 @@
     max-width: 420px;
     padding: 30px;
   }
-  h1 { text-align: center; color: #203a43; font-size: 22px; margin-bottom: 5px; }
-  p.subtitle { text-align: center; color: #777; margin-bottom: 25px; font-size: 14px; }
-  label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
+  h1 {
+    text-align: center;
+    color: #203a43;
+    font-size: 22px;
+    margin-bottom: 5px;
+  }
+  p.subtitle {
+    text-align: center;
+    color: #777;
+    margin-bottom: 25px;
+    font-size: 14px;
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 14px;
+  }
   input {
-    width: 100%; padding: 12px; margin-bottom: 18px;
-    border: 1px solid #ccc; border-radius: 8px; font-size: 15px;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 18px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
   }
   button {
-    width: 100%; padding: 12px; background: #203a43; color: #fff;
-    border: none; border-radius: 8px; font-size: 16px; cursor: pointer;
+    width: 100%;
+    padding: 12px;
+    background: #203a43;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
   }
   button:hover { background: #2c5364; }
-  .error { color: #c0392b; font-size: 13px; text-align: center; margin-bottom: 10px; display: none; }
+  .error {
+    color: #c0392b;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 10px;
+    display: none;
+  }
   .hidden { display: none; }
-  .loading { text-align: center; color: #666; font-size: 14px; }
-  .dashboard-header { background: #203a43; color: #fff; padding: 20px; border-radius: 12px 12px 0 0; margin: -30px -30px 20px -30px; }
+
+  .dashboard-header {
+    background: #203a43;
+    color: #fff;
+    padding: 20px;
+    border-radius: 12px 12px 0 0;
+    margin: -30px -30px 20px -30px;
+  }
   .dashboard-header h2 { margin: 0 0 5px 0; font-size: 18px; }
   .dashboard-header span { font-size: 13px; opacity: 0.85; }
-  .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
-  .info-row.total { font-weight: 700; font-size: 16px; color: #1a7a3c; border-top: 2px solid #203a43; margin-top: 10px; padding-top: 12px; }
-  .logout-btn { background: #c0392b; margin-top: 20px; }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+  }
+  .info-row.total {
+    font-weight: 700;
+    font-size: 16px;
+    color: #1a7a3c;
+    border-top: 2px solid #203a43;
+    margin-top: 10px;
+    padding-top: 12px;
+  }
+  .logout-btn {
+    background: #c0392b;
+    margin-top: 20px;
+  }
   .logout-btn:hover { background: #922b21; }
-  .badge { display: inline-block; background: #eaf3ff; color: #1a5276; padding: 3px 10px; border-radius: 20px; font-size: 12px; margin-top: 5px; }
+  .badge {
+    display: inline-block;
+    background: #eaf3ff;
+    color: #1a5276;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-top: 5px;
+  }
+  .loading {
+    text-align: center;
+    color: #777;
+    font-size: 14px;
+  }
 </style>
 </head>
 <body>
 
-<div class="card" id="loadingCard">
-  <p class="loading">Carregando dados da planilha...</p>
-</div>
-
-<div class="card hidden" id="loginCard">
+<div class="card" id="loginCard">
   <h1>RV Armazém</h1>
   <p class="subtitle">Acesse com seu CPF (login e senha)</p>
   <div class="error" id="errorMsg"></div>
-  <label for="cpfInput">CPF (somente números)</label>
-  <input type="text" id="cpfInput" placeholder="Ex: 12345678900" maxlength="14">
-  <label for="senhaInput">Senha</label>
-  <input type="password" id="senhaInput" placeholder="Digite seu CPF novamente">
-  <button onclick="login()">Entrar</button>
+  <div class="loading" id="loadingMsg">Carregando dados...</div>
+  <div id="loginForm" class="hidden">
+    <label for="cpfInput">CPF (somente números)</label>
+    <input type="text" id="cpfInput" placeholder="Ex: 12345678900" maxlength="14">
+    <label for="senhaInput">Senha</label>
+    <input type="password" id="senhaInput" placeholder="Digite seu CPF novamente">
+    <button onclick="login()">Entrar</button>
+  </div>
 </div>
 
 <div class="card hidden" id="dashCard">
@@ -77,86 +144,83 @@
 </div>
 
 <script>
-// ===================== CONFIGURAÇÃO =====================
-// Substitua pelos links publicados da sua planilha (Passo 1)
-const URL_AUX = "COLE_AQUI_O_LINK_CSV_DA_ABA_AUX";
-const URL_OPERADOR = "COLE_AQUI_O_LINK_CSV_DA_ABA_OPERADOR";
-
 let base = [];
 
-// ===================== FUNÇÕES DE PARSE =====================
-function parseCSV(texto) {
-  const linhas = texto.trim().split('\n').map(l => l.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
-  return linhas;
+// ===================== CARREGAR CSV =====================
+function limparCpf(cpf){
+  return cpf.replace(/\D/g, '');
 }
 
-function paraNumero(valor) {
-  if (!valor) return 0;
-  let v = valor.replace(/R\$\s?/g, '').replace(/\./g, '').replace(',', '.').replace(/[^\d.\-]/g, '');
-  const n = parseFloat(v);
-  return isNaN(n) ? 0 : n;
+function formatarMoeda(valor){
+  return valor.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
 }
 
-function limparCpf(cpf) {
-  return (cpf || '').replace(/\D/g, '');
-}
+function parseCSV(texto){
+  const linhas = texto.trim().split(/\r?\n/);
+  const cabecalho = linhas[0].split(',').map(h => h.trim());
+  const registros = [];
 
-function formatarMoeda(valor) {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-// ===================== CARREGAR DADOS =====================
-async function carregarDados() {
-  try {
-    const [respAux, respOp] = await Promise.all([
-      fetch(URL_AUX),
-      fetch(URL_OPERADOR)
-    ]);
-    const textoAux = await respAux.text();
-    const textoOp = await respOp.text();
-
-    const linhasAux = parseCSV(textoAux);
-    const linhasOp = parseCSV(textoOp);
-
-    const cabecalhoAux = linhasAux[0];
-    const cabecalhoOp = linhasOp[0];
-
-    const auxiliares = linhasAux.slice(1).filter(l => l[0] && l[1]).map(linha => montarColaborador(linha, cabecalhoAux, "Auxiliar de Movimentação"));
-    const operadores = linhasOp.slice(1).filter(l => l[0] && l[1]).map(linha => montarColaborador(linha, cabecalhoOp, "Operador de Empilhadeira"));
-
-    base = [...auxiliares, ...operadores];
-
-    document.getElementById('loadingCard').classList.add('hidden');
-    document.getElementById('loginCard').classList.remove('hidden');
-  } catch (erro) {
-    document.getElementById('loadingCard').innerHTML =
-      '<p class="loading" style="color:#c0392b;">Erro ao carregar dados. Verifique a conexão ou os links da planilha.</p>';
-    console.error(erro);
+  for (let i = 1; i < linhas.length; i++) {
+    if (!linhas[i].trim()) continue;
+    const valores = linhas[i].split(',');
+    const obj = {};
+    cabecalho.forEach((chave, idx) => {
+      obj[chave.trim()] = (valores[idx] || '').trim();
+    });
+    registros.push(obj);
   }
+  return registros;
 }
 
-function montarColaborador(linha, cabecalho, funcao) {
-  const nome = linha[0];
-  const cpf = limparCpf(linha[1]);
-  const turno = linha[3];
-  const itens = {};
+function montarBase(registros){
+  const mapa = {};
 
-  // Colunas de índice 4 até a penúltima são os valores intermediários
-  for (let i = 4; i < cabecalho.length - 1; i++) {
-    const chave = cabecalho[i];
-    if (!chave) continue;
-    const valor = paraNumero(linha[i]);
-    if (valor !== 0) itens[chave] = valor;
-  }
+  registros.forEach(r => {
+    const cpfLimpo = limparCpf(r.cpf);
+    if (!mapa[cpfLimpo]) {
+      mapa[cpfLimpo] = {
+        nome: r.nome,
+        cpf: r.cpf,
+        funcao: r.funcao,
+        turno: r.turno,
+        itens: {},
+        total: 0
+      };
+    }
 
-  // Última coluna = total a pagar
-  const total = paraNumero(linha[linha.length - 1]);
+    const valorNum = parseFloat(r.valor.replace(',', '.'));
 
-  return { nome, cpf, turno, funcao, itens, total };
+    if (r.item.trim().toUpperCase() === 'TOTAL') {
+      mapa[cpfLimpo].total = valorNum;
+    } else {
+      mapa[cpfLimpo].itens[r.item] = valorNum;
+    }
+  });
+
+  return Object.values(mapa);
 }
 
-// ===================== LOGIN =====================
-function login() {
+function carregarDados(){
+  fetch('dados.csv')
+    .then(resp => {
+      if (!resp.ok) throw new Error('Arquivo não encontrado');
+      return resp.text();
+    })
+    .then(texto => {
+      const registros = parseCSV(texto);
+      base = montarBase(registros);
+      document.getElementById('loadingMsg').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+    })
+    .catch(err => {
+      document.getElementById('loadingMsg').textContent =
+        'Erro ao carregar dados. Verifique o arquivo dados.csv.';
+      console.error(err);
+    });
+}
+
+// ===================== LÓGICA DE LOGIN =====================
+function login(){
   const cpfDigitado = limparCpf(document.getElementById('cpfInput').value);
   const senhaDigitada = limparCpf(document.getElementById('senhaInput').value);
   const errorMsg = document.getElementById('errorMsg');
@@ -167,7 +231,7 @@ function login() {
     return;
   }
 
-  const colaborador = base.find(c => c.cpf === cpfDigitado);
+  const colaborador = base.find(c => limparCpf(c.cpf) === cpfDigitado);
 
   if (!colaborador) {
     errorMsg.textContent = "CPF não encontrado. Verifique os números digitados.";
@@ -179,7 +243,7 @@ function login() {
   mostrarDashboard(colaborador);
 }
 
-function mostrarDashboard(colaborador) {
+function mostrarDashboard(colaborador){
   document.getElementById('loginCard').classList.add('hidden');
   document.getElementById('dashCard').classList.remove('hidden');
 
@@ -189,22 +253,33 @@ function mostrarDashboard(colaborador) {
 
   let html = '';
   for (const [chave, valor] of Object.entries(colaborador.itens)) {
-    html += `<div class="info-row"><span>${chave}</span><span>${formatarMoeda(valor)}</span></div>`;
+    if (valor !== 0) {
+      html += `<div class="info-row"><span>${chave}</span><span>${formatarMoeda(valor)}</span></div>`;
+    }
   }
   html += `<div class="info-row total"><span>Total a Pagar (RV)</span><span>${formatarMoeda(colaborador.total)}</span></div>`;
 
   document.getElementById('detalhesRV').innerHTML = html;
 }
 
-function logout() {
+function logout(){
   document.getElementById('dashCard').classList.add('hidden');
   document.getElementById('loginCard').classList.remove('hidden');
   document.getElementById('cpfInput').value = '';
   document.getElementById('senhaInput').value = '';
 }
 
-document.addEventListener('DOMContentLoaded', carregarDados);
-document.getElementById('senhaInput')?.addEventListener('keyup', e => { if (e.key === 'Enter') login(); });
+document.getElementById('senhaInput')?.addEventListener('keyup', function(e){
+  if (e.key === 'Enter') login();
+});
+
+// Como o input de senha é criado dinamicamente após o carregamento, reanexamos o listener
+window.addEventListener('load', () => {
+  carregarDados();
+  document.getElementById('senhaInput').addEventListener('keyup', function(e){
+    if (e.key === 'Enter') login();
+  });
+});
 </script>
 
 </body>
