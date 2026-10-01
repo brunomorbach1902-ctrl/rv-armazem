@@ -7,23 +7,14 @@
 <style>
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0; font-family: 'Segoe UI', Arial, sans-serif;
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #333;
-    padding: 20px 0;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    color: #333; padding: 20px 0;
   }
   .card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    width: 100%;
-    max-width: 420px;
-    padding: 30px;
+    background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    width: 100%; max-width: 440px; padding: 30px;
   }
   h1 { text-align: center; color: #203a43; font-size: 22px; margin-bottom: 5px; }
   p.subtitle { text-align: center; color: #777; margin-bottom: 25px; font-size: 14px; }
@@ -38,10 +29,7 @@
     transition: background 0.2s; margin-bottom: 10px;
   }
   button:hover { background: #2c5364; }
-  .error {
-    color: #c0392b; font-size: 13px; text-align: center;
-    margin-bottom: 10px; display: none;
-  }
+  .error { color: #c0392b; font-size: 13px; text-align: center; margin-bottom: 10px; display: none; }
   .hidden { display: none; }
   .dashboard-header {
     background: #203a43; color: #fff; padding: 20px;
@@ -57,10 +45,8 @@
     font-weight: 700; font-size: 16px; color: #1a7a3c;
     border-top: 2px solid #203a43; margin-top: 10px; padding-top: 12px;
   }
-  .logout-btn { background: #c0392b; }
-  .logout-btn:hover { background: #922b21; }
-  .back-btn { background: #7f8c8d; }
-  .back-btn:hover { background: #616e70; }
+  .logout-btn { background: #c0392b; } .logout-btn:hover { background: #922b21; }
+  .back-btn { background: #7f8c8d; } .back-btn:hover { background: #616e70; }
   .badge {
     display: inline-block; background: #eaf3ff; color: #1a5276;
     padding: 3px 10px; border-radius: 20px; font-size: 12px; margin-top: 5px;
@@ -68,11 +54,25 @@
   .loading { text-align: center; color: #777; font-size: 14px; }
   .mes-btn {
     background: #eaf3ff; color: #1a5276; text-align: left;
-    display: flex; justify-content: space-between; align-items: center;
-    font-weight: 600;
+    display: flex; justify-content: space-between; align-items: center; font-weight: 600;
   }
   .mes-btn:hover { background: #d5e8fb; }
   .mes-btn .valor { color: #1a7a3c; }
+
+  /* ABAS */
+  .tabs { display: flex; margin: -30px -30px 20px -30px; border-radius: 12px 12px 0 0; overflow: hidden; }
+  .tab-btn {
+    flex: 1; padding: 16px; background: #1a2d35; color: #aab8bd; border: none;
+    font-size: 15px; font-weight: 600; cursor: pointer; margin: 0; border-radius: 0;
+  }
+  .tab-btn.active { background: #203a43; color: #fff; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .skap-nivel {
+    text-align: center; background: #eaf3ff; color: #1a5276;
+    padding: 10px; border-radius: 8px; font-weight: 700; margin-top: 15px; font-size: 15px;
+  }
+  .no-data { text-align: center; color: #999; font-size: 14px; padding: 20px 0; }
 </style>
 </head>
 <body>
@@ -91,37 +91,45 @@
   </div>
 </div>
 
-<div class="card hidden" id="mesesCard">
-  <div class="dashboard-header">
-    <h2 id="mesesNome"></h2>
-    <span id="mesesFuncao"></span><br>
-    <span class="badge" id="mesesTurno"></span>
+<div class="card hidden" id="mainCard">
+  <div class="tabs">
+    <button class="tab-btn active" id="tabVariavelBtn" onclick="mostrarTab('variavel')">Variável</button>
+    <button class="tab-btn" id="tabSkapBtn" onclick="mostrarTab('skap')">SKAP</button>
   </div>
-  <p class="subtitle" style="margin-bottom:15px;">Selecione o mês de referência:</p>
-  <div id="listaMeses"></div>
-  <button class="logout-btn" onclick="logout()">Sair</button>
-</div>
 
-<div class="card hidden" id="dashCard">
   <div class="dashboard-header">
-    <h2 id="colabNome"></h2>
-    <span id="colabFuncao"></span><br>
-    <span class="badge" id="colabMes"></span>
+    <h2 id="headerNome"></h2>
+    <span id="headerFuncao"></span><br>
+    <span class="badge" id="headerTurno"></span>
   </div>
-  <div id="detalhesRV"></div>
-  <button class="back-btn" onclick="voltarMeses()">Voltar aos meses</button>
+
+  <!-- ABA VARIÁVEL -->
+  <div class="tab-content active" id="tabVariavel">
+    <div id="telaMeses">
+      <p class="subtitle" style="margin-bottom:15px;">Selecione o mês de referência:</p>
+      <div id="listaMeses"></div>
+    </div>
+    <div id="telaDetalheMes" class="hidden">
+      <div id="detalhesRV"></div>
+      <button class="back-btn" onclick="voltarMeses()">Voltar aos meses</button>
+    </div>
+  </div>
+
+  <!-- ABA SKAP -->
+  <div class="tab-content" id="tabSkap">
+    <div id="skapConteudo"></div>
+  </div>
+
   <button class="logout-btn" onclick="logout()">Sair</button>
 </div>
 
 <script>
-let base = [];
+let baseVariavel = [];
+let baseSkap = [];
 let colaboradorAtual = null;
 
 function limparCpf(cpf){ return cpf.replace(/\D/g, ''); }
-
-function formatarMoeda(valor){
-  return valor.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
-}
+function formatarMoeda(valor){ return valor.toLocaleString('pt-BR', { style:'currency', currency:'BRL' }); }
 
 function parseCSV(texto){
   const linhas = texto.trim().split(/\r?\n/);
@@ -137,7 +145,7 @@ function parseCSV(texto){
   return registros;
 }
 
-function montarBase(registros){
+function montarBaseVariavel(registros){
   const mapa = {};
   registros.forEach(r => {
     const cpfLimpo = limparCpf(r.cpf);
@@ -145,9 +153,7 @@ function montarBase(registros){
       mapa[cpfLimpo] = { nome: r.nome, cpf: r.cpf, funcao: r.funcao, turno: r.turno, meses: {} };
     }
     const mes = r.mes.trim().toUpperCase();
-    if (!mapa[cpfLimpo].meses[mes]) {
-      mapa[cpfLimpo].meses[mes] = { itens: {}, total: 0 };
-    }
+    if (!mapa[cpfLimpo].meses[mes]) mapa[cpfLimpo].meses[mes] = { itens: {}, total: 0 };
     const valorNum = parseFloat(r.valor.replace(',', '.'));
     if (r.item.trim().toUpperCase() === 'TOTAL') {
       mapa[cpfLimpo].meses[mes].total = valorNum;
@@ -155,22 +161,28 @@ function montarBase(registros){
       mapa[cpfLimpo].meses[mes].itens[r.item] = valorNum;
     }
   });
-  return Object.values(mapa);
+  return mapa;
+}
+
+function montarBaseSkap(registros){
+  const mapa = {};
+  registros.forEach(r => { mapa[limparCpf(r.cpf)] = r; });
+  return mapa;
 }
 
 function carregarDados(){
-  fetch('dados.csv')
-    .then(resp => { if (!resp.ok) throw new Error('Arquivo não encontrado'); return resp.text(); })
-    .then(texto => {
-      const registros = parseCSV(texto);
-      base = montarBase(registros);
-      document.getElementById('loadingMsg').classList.add('hidden');
-      document.getElementById('loginForm').classList.remove('hidden');
-    })
-    .catch(err => {
-      document.getElementById('loadingMsg').textContent = 'Erro ao carregar dados. Verifique o arquivo dados.csv.';
-      console.error(err);
-    });
+  Promise.all([
+    fetch('dados.csv').then(r => { if(!r.ok) throw new Error('dados.csv não encontrado'); return r.text(); }),
+    fetch('skap.csv').then(r => { if(!r.ok) throw new Error('skap.csv não encontrado'); return r.text(); })
+  ]).then(([textoDados, textoSkap]) => {
+    baseVariavel = montarBaseVariavel(parseCSV(textoDados));
+    baseSkap = montarBaseSkap(parseCSV(textoSkap));
+    document.getElementById('loadingMsg').classList.add('hidden');
+    document.getElementById('loginForm').classList.remove('hidden');
+  }).catch(err => {
+    document.getElementById('loadingMsg').textContent = 'Erro ao carregar dados: ' + err.message;
+    console.error(err);
+  });
 }
 
 function login(){
@@ -184,8 +196,7 @@ function login(){
     return;
   }
 
-  const colaborador = base.find(c => limparCpf(c.cpf) === cpfDigitado);
-
+  const colaborador = baseVariavel[cpfDigitado];
   if (!colaborador) {
     errorMsg.textContent = "CPF não encontrado. Verifique os números digitados.";
     errorMsg.style.display = 'block';
@@ -193,65 +204,87 @@ function login(){
   }
 
   errorMsg.style.display = 'none';
-  colaboradorAtual = colaborador;
-  mostrarMeses(colaborador);
+  colaboradorAtual = { cpf: cpfDigitado, ...colaborador };
+  abrirDashboard();
 }
 
-// Ordem cronológica para exibir os meses corretamente
 const ORDEM_MESES = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO",
   "JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
 
-function mostrarMeses(colaborador){
+function abrirDashboard(){
   document.getElementById('loginCard').classList.add('hidden');
-  document.getElementById('dashCard').classList.add('hidden');
-  document.getElementById('mesesCard').classList.remove('hidden');
+  document.getElementById('mainCard').classList.remove('hidden');
 
-  document.getElementById('mesesNome').textContent = colaborador.nome;
-  document.getElementById('mesesFuncao').textContent = colaborador.funcao;
-  document.getElementById('mesesTurno').textContent = "Turno " + colaborador.turno;
+  document.getElementById('headerNome').textContent = colaboradorAtual.nome;
+  document.getElementById('headerFuncao').textContent = colaboradorAtual.funcao;
+  document.getElementById('headerTurno').textContent = "Turno " + colaboradorAtual.turno;
 
-  const mesesDisponiveis = Object.keys(colaborador.meses)
+  mostrarTab('variavel');
+  mostrarMeses();
+  mostrarSkap();
+}
+
+function mostrarTab(aba){
+  document.getElementById('tabVariavel').classList.toggle('active', aba === 'variavel');
+  document.getElementById('tabSkap').classList.toggle('active', aba === 'skap');
+  document.getElementById('tabVariavelBtn').classList.toggle('active', aba === 'variavel');
+  document.getElementById('tabSkapBtn').classList.toggle('active', aba === 'skap');
+}
+
+function mostrarMeses(){
+  document.getElementById('telaDetalheMes').classList.add('hidden');
+  document.getElementById('telaMeses').classList.remove('hidden');
+
+  const mesesDisponiveis = Object.keys(colaboradorAtual.meses)
     .sort((a,b) => ORDEM_MESES.indexOf(a) - ORDEM_MESES.indexOf(b));
 
   let html = '';
   mesesDisponiveis.forEach(mes => {
-    const total = colaborador.meses[mes].total;
+    const total = colaboradorAtual.meses[mes].total;
     html += `<button class="mes-btn" onclick="abrirMes('${mes}')">
       <span>${mes}</span><span class="valor">${formatarMoeda(total)}</span>
     </button>`;
   });
-
   document.getElementById('listaMeses').innerHTML = html;
 }
 
 function abrirMes(mes){
   const dadosMes = colaboradorAtual.meses[mes];
-  document.getElementById('mesesCard').classList.add('hidden');
-  document.getElementById('dashCard').classList.remove('hidden');
+  document.getElementById('telaMeses').classList.add('hidden');
+  document.getElementById('telaDetalheMes').classList.remove('hidden');
 
-  document.getElementById('colabNome').textContent = colaboradorAtual.nome;
-  document.getElementById('colabFuncao').textContent = colaboradorAtual.funcao;
-  document.getElementById('colabMes').textContent = mes + " — Turno " + colaboradorAtual.turno;
-
-  let html = '';
+  let html = `<p class="subtitle" style="margin-bottom:10px;">${mes}</p>`;
   for (const [chave, valor] of Object.entries(dadosMes.itens)) {
-    if (valor !== 0) {
-      html += `<div class="info-row"><span>${chave}</span><span>${formatarMoeda(valor)}</span></div>`;
-    }
+    if (valor !== 0) html += `<div class="info-row"><span>${chave}</span><span>${formatarMoeda(valor)}</span></div>`;
   }
   html += `<div class="info-row total"><span>Total a Pagar (RV)</span><span>${formatarMoeda(dadosMes.total)}</span></div>`;
-
   document.getElementById('detalhesRV').innerHTML = html;
 }
 
-function voltarMeses(){
-  document.getElementById('dashCard').classList.add('hidden');
-  mostrarMeses(colaboradorAtual);
+function voltarMeses(){ mostrarMeses(); }
+
+function mostrarSkap(){
+  const dadosSkap = baseSkap[colaboradorAtual.cpf];
+  const container = document.getElementById('skapConteudo');
+
+  if (!dadosSkap) {
+    container.innerHTML = '<p class="no-data">Nenhum dado de SKAP disponível no momento.</p>';
+    return;
+  }
+
+  let html = '';
+  html += `<div class="info-row"><span>Habilidades Técnicas</span><span>${dadosSkap.habilidades_tecnicas}</span></div>`;
+  html += `<div class="info-row"><span>Habilidades Específicas</span><span>${dadosSkap.habilidades_especificas}</span></div>`;
+  html += `<div class="info-row"><span>Habilidades Empoderamento</span><span>${dadosSkap.habilidades_empoderamento}</span></div>`;
+  html += `<div class="info-row"><span>Proficiência</span><span>${dadosSkap.proficiencia}</span></div>`;
+  html += `<div class="skap-nivel">Nível: ${dadosSkap.niveis}</div>`;
+  html += `<div class="info-row" style="margin-top:15px;"><span>Plano de Ação</span><span>${dadosSkap.plano_acao || '-'}</span></div>`;
+
+  container.innerHTML = html;
 }
 
 function logout(){
-  document.getElementById('dashCard').classList.add('hidden');
-  document.getElementById('mesesCard').classList.add('hidden');
+  document.getElementById('mainCard').classList.add('hidden');
   document.getElementById('loginCard').classList.remove('hidden');
   document.getElementById('cpfInput').value = '';
   document.getElementById('senhaInput').value = '';
